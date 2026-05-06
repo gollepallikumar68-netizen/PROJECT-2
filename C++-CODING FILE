@@ -1,0 +1,207 @@
+#include <iostream>
+#include <string>
+#include <limits>
+using namespace std;
+
+// ---------- CONTACTS (Linked List) ----------
+class Contact {
+public:
+    string name;
+    string number;
+    Contact* next;
+
+    Contact(string n, string num) {
+        name = n;
+        number = num;
+        next = nullptr;
+    }
+};
+
+Contact* head = nullptr;
+
+void addContact() {
+    string name, number;
+    cout << "Enter Name: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, name);
+    cout << "Enter Number: ";
+    getline(cin, number);
+
+    Contact* newContact = new Contact(name, number);
+    newContact->next = head;
+    head = newContact;
+
+    cout << "Contact Added!\n";
+}
+
+void displayContacts() {
+    Contact* temp = head;
+    if (!temp) {
+        cout << "No Contacts!\n";
+        return;
+    }
+    while (temp) {
+        cout << temp->name << " - " << temp->number << endl;
+        temp = temp->next;
+    }
+}
+
+Contact* searchContact(string name) {
+    Contact* temp = head;
+    while (temp) {
+        if (temp->name == name) return temp;
+        temp = temp->next;
+    }
+    return nullptr;
+}
+
+void freeContacts() {
+    while (head) {
+        Contact* temp = head;
+        head = head->next;
+        delete temp;
+    }
+}
+
+// ---------- MESSAGES (Queue) ----------
+class Message {
+public:
+    string recipient;
+    string text;
+};
+
+Message messageQueue[100];
+int front = -1, rear = -1;
+
+void sendMessage() {
+    string recipientName, msg;
+    cout << "Enter Recipient Name: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, recipientName);
+
+    Contact* contact = searchContact(recipientName);
+    if (!contact) {
+        cout << "Contact not found!\n";
+        return;
+    }
+
+    cout << "Enter Message: ";
+    getline(cin, msg);
+
+    if (rear == 99) {
+        cout << "Inbox Full!\n";
+        return;
+    }
+
+    if (front == -1) front = 0;
+    messageQueue[++rear] = {recipientName, msg};
+
+    cout << "Message Sent to " << recipientName << "!\n";
+}
+
+void viewMessages() {
+    if (front == -1) {
+        cout << "No Messages!\n";
+        return;
+    }
+
+    for (int i = front; i <= rear; i++) {
+        cout << i + 1 << ". To " << messageQueue[i].recipient
+             << ": " << messageQueue[i].text << endl;
+    }
+}
+
+void deleteMessage() {
+    if (front == -1) {
+        cout << "No Messages to Delete!\n";
+        return;
+    }
+    cout << "Deleting: To " << messageQueue[front].recipient
+         << " - " << messageQueue[front].text << endl;
+    if (front == rear) {
+        front = rear = -1;
+    } else {
+        front++;
+    }
+}
+
+// ---------- CALL HISTORY (Stack) ----------
+string calls[100];
+int top = -1;
+
+void makeCall() {
+    string name;
+    cout << "Enter Contact Name: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, name);
+
+    Contact* contact = searchContact(name);
+    if (!contact) {
+        cout << "Contact not found!\n";
+        return;
+    }
+
+    if (top == 99) {
+        cout << "Call History Full!\n";
+        return;
+    }
+
+    calls[++top] = name;
+    cout << "Calling " << name << "...\n";
+}
+
+void callHistory() {
+    if (top == -1) {
+        cout << "No Call History!\n";
+        return;
+    }
+
+    for (int i = top; i >= 0; i--) {
+        cout << calls[i] << endl;
+    }
+}
+
+void deleteLastCall() {
+    if (top == -1) {
+        cout << "No Calls to Delete!\n";
+        return;
+    }
+    cout << "Deleting Call: " << calls[top--] << endl;
+}
+
+// ---------- MAIN MENU ----------
+int main() {
+    int choice;
+
+    do {
+        cout << "\n==== ANDROID PHONE SYSTEM ====\n";
+        cout << "1. Add Contact\n";
+        cout << "2. View Contacts\n";
+        cout << "3. Send Message\n";
+        cout << "4. View Messages\n";
+        cout << "5. Delete Message\n";
+        cout << "6. Make Call\n";
+        cout << "7. Call History\n";
+        cout << "8. Delete Last Call\n";
+        cout << "9. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: addContact(); break;
+            case 2: displayContacts(); break;
+            case 3: sendMessage(); break;
+            case 4: viewMessages(); break;
+            case 5: deleteMessage(); break;
+            case 6: makeCall(); break;
+            case 7: callHistory(); break;
+            case 8: deleteLastCall(); break;
+            case 9: cout << "Exiting...\n"; break;
+            default: cout << "Invalid Choice!\n";
+        }
+
+    } while (choice != 9);
+
+    freeContacts();
+    return 0;
+}
